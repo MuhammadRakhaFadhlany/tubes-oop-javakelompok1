@@ -1,4 +1,4 @@
-package backend;
+package model;
 
 public class Anggota extends User {
     private String idAnggota;

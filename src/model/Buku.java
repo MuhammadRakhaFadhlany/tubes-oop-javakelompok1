@@ -1,4 +1,5 @@
-package backend;
+package model;
+
 public class Buku {
     private String idBuku;
     private String judul;

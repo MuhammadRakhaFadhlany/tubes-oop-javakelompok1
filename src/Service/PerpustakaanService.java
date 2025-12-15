@@ -1,7 +1,7 @@
-package Service;
+package service;
 
-import backend.*;
 import java.util.ArrayList;
+import model.*;
 
 public class PerpustakaanService {
     private ArrayList<Buku> daftarBuku = new ArrayList<>();

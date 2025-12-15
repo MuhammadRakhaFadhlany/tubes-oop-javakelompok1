@@ -1,4 +1,4 @@
-package backend;
+package model;
 
 public abstract class User {
     protected String username;

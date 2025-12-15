@@ -1,4 +1,4 @@
-package backend;
+package model;
 
 public class Petugas extends User {
     private String idPetugas;
