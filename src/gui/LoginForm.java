@@ -1,3 +1,4 @@
+
 package gui;
 
 import model.*;
@@ -10,7 +11,7 @@ public class LoginForm extends JFrame {
 
     public LoginForm() {
         setTitle("Login");
-        setSize(300,250);
+        setSize(250,200);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         txtUser = new JTextField();
@@ -42,7 +43,7 @@ public class LoginForm extends JFrame {
         } else {
             Anggota a = new Anggota("A01","User","anggota","123");
             if (a.login(txtUser.getText(), new String(txtPass.getPassword()))) {
-                new DashboardAnggota().setVisible(true);
+                new DashboardAnggota(a).setVisible(true);
                 dispose();
             }
         }
