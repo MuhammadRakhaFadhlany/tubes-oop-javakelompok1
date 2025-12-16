@@ -6,6 +6,7 @@ import model.*;
 import service.PerpustakaanService;
 import java.awt.*;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -27,7 +28,7 @@ public class DashboardAnggota extends JFrame {
         add(header, BorderLayout.NORTH);
 
         // Tabel Buku
-        modelBuku = new DefaultTableModel(new String[]{"ID", "Judul", "Pengarang", "Stok", "Aksi"}, 0);
+        modelBuku = new DefaultTableModel(new String[]{"ID", "Judul", "Pengarang", "Stok", "Keterangan"}, 0);
         tableBuku = new JTable(modelBuku);
         add(new JScrollPane(tableBuku), BorderLayout.CENTER);
 
@@ -70,18 +71,30 @@ public class DashboardAnggota extends JFrame {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("\\|");
                 if (parts.length == 5) {
-                    Buku buku = new Buku(
-                        parts[0], parts[1], parts[2], parts[3], 
-                        Integer.parseInt(parts[4])
-                    );
-                    service.tambahBuku(buku);
+                    int stok = Integer.parseInt(parts[4]);
+
+                   
+                    String keterangan = stok > 0 ? "Tersedia" : "Tidak Tersedia";
+                   
+
                     modelBuku.addRow(new Object[]{
-                        parts[0], parts[1], parts[2], parts[4], "Pinjam"
+                            parts[0], parts[1], parts[2], stok, keterangan
                     });
+
+                    Buku buku = new Buku(
+                            parts[0], parts[1], parts[2], parts[3], stok);
+                    service.tambahBuku(buku);
+
                 }
             }
-        } catch (IOException | NumberFormatException e) {
-            // File belum ada
+        } catch (FileNotFoundException e) {
+            // File belum ada, asumsikan startup awal, tidak ada data yang dimuat.
+        } catch (IOException e) {
+            // Terjadi error I/O lain saat membaca file.
+            e.printStackTrace(); // Penting untuk melihat error I/O lainnya
+        } catch (NumberFormatException e) {
+            // Data dalam file (parts[4]) tidak valid (bukan angka).
+            System.err.println("Peringatan: Data stok tidak valid di salah satu baris.");
         }
     }
 
@@ -90,10 +103,17 @@ public class DashboardAnggota extends JFrame {
         for (Buku buku : service.getDaftarBuku()) {
             if (buku.getJudul().toLowerCase().contains(keyword.toLowerCase()) || 
                 keyword.isEmpty()) {
-                modelBuku.addRow(new Object[]{
-                    buku.toRow()[0], buku.toRow()[1], buku.toRow()[2], 
-                    buku.toRow()[4], "Pinjam"
-                });
+                int stok = Integer.parseInt(buku.toRow()[4].toString());
+
+                String keterangan = stok > 0 ? "Tersedia" : "Tidak Tersedia";
+
+            modelBuku.addRow(new Object[]{
+                buku.toRow()[0],
+                buku.toRow()[1],
+                buku.toRow()[2],
+                stok,
+                keterangan
+            });
             }
         }
     }
@@ -113,13 +133,45 @@ public class DashboardAnggota extends JFrame {
 
         stok--;
         modelBuku.setValueAt(stok, row, 3);
+
+        String ket = stok > 0 ? "Tersedia" : "Tidak Tersedia";
+        modelBuku.setValueAt(ket, row, 4);
+
         JOptionPane.showMessageDialog(this, "Buku berhasil dipinjam!");
+
     }
 
     private void kembalikanBuku() {
-        String buku = JOptionPane.showInputDialog(this, "Nama buku yang dikembalikan:");
-        if (buku != null && !buku.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Buku '" + buku + "' berhasil dikembalikan!");
+    String judul = JOptionPane.showInputDialog(this, "Nama buku yang dikembalikan:");
+
+    if (judul == null || judul.trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Judul buku tidak boleh kosong!");
+        return;
+    }
+
+    boolean ditemukan = false;
+
+    for (int i = 0; i < modelBuku.getRowCount(); i++) {
+        String judulTabel = modelBuku.getValueAt(i, 1).toString();
+
+        if (judulTabel.equalsIgnoreCase(judul.trim())) {
+            int stok = Integer.parseInt(modelBuku.getValueAt(i, 3).toString());
+            stok++;
+
+            modelBuku.setValueAt(stok, i, 3);
+            modelBuku.setValueAt("Tersedia", i, 4);
+
+            JOptionPane.showMessageDialog(this,
+                    "Buku \"" + judulTabel + "\" berhasil dikembalikan!");
+            ditemukan = true;
+            break;
         }
     }
+
+    if (!ditemukan) {
+        JOptionPane.showMessageDialog(this,
+                "Buku tidak ditemukan di daftar!");
+    }
+}
+
 }

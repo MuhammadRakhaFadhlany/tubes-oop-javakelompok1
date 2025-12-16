@@ -13,6 +13,7 @@ public class LoginForm extends JFrame {
         setTitle("Login");
         setSize(250,200);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
         txtUser = new JTextField();
         txtPass = new JPasswordField();
