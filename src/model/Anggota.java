@@ -14,7 +14,9 @@ public class Anggota extends User {
     public String getRole() {
         return "Anggota";
     }
-
+    public String getNama(){
+        return nama;
+    }
     public void cariBuku() {}
     public void pinjamBuku() {}
     public void kembalikanBuku() {}
