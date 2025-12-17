@@ -1,6 +1,7 @@
 package model;
 
 public class Buku {
+
     private String idBuku;
     private String judul;
     private String pengarang;
@@ -14,6 +15,48 @@ public class Buku {
         this.penerbit = penerbit;
         this.stok = stok;
     }
+
+    /* ================= GETTER ================= */
+
+    public String getIdBuku() {
+        return idBuku;
+    }
+
+    public String getJudul() {
+        return judul;
+    }
+
+    public String getPengarang() {
+        return pengarang;
+    }
+
+    public String getPenerbit() {
+        return penerbit;
+    }
+
+    public int getStok() {
+        return stok;
+    }
+
+    /* ================= SETTER ================= */
+
+    public void setJudul(String judul) {
+        this.judul = judul;
+    }
+
+    public void setPengarang(String pengarang) {
+        this.pengarang = pengarang;
+    }
+
+    public void setPenerbit(String penerbit) {
+        this.penerbit = penerbit;
+    }
+
+    public void setStok(int stok) {
+        this.stok = stok;
+    }
+
+    /* ================= LOGIC ================= */
 
     public int cekStok() {
         return stok;
@@ -30,11 +73,11 @@ public class Buku {
         stok--;
     }
 
-    public Object[] toRow() {
-        return new Object[]{idBuku, judul, pengarang, penerbit, stok};
-    }
+    /* ================= TABLE ================= */
 
-    public String getJudul() {
-        return judul;
+    public Object[] toRow() {
+        return new Object[]{
+            idBuku, judul, pengarang, penerbit, stok
+        };
     }
 }

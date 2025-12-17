@@ -8,34 +8,70 @@ import java.awt.*;
 import java.io.*;
 
 public class DashboardPetugas extends JFrame {
-    PerpustakaanService service = new PerpustakaanService();
-    DefaultTableModel model;
-    JTable table;
+
+    private PerpustakaanService service = new PerpustakaanService();
+    private DefaultTableModel model;
+    private JTable table;
     private static final String DATA_FILE = "data_buku.txt";
 
     public DashboardPetugas() {
-        setTitle("Dashboard Petugas");
-        setSize(800, 500);
+        setTitle("Dashboard Petugas - Perpustakaan");
+        setSize(920, 560);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
 
-        // Header
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        header.add(new JLabel("SISTEM PERPUSTAKAAN - PETUGAS"));
+        Color headerColor = new Color(41, 128, 185);
+        Color panelColor  = new Color(245, 246, 250);
+
+        /* ================= HEADER ================= */
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(headerColor);
+        header.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+
+        JLabel lblTitle = new JLabel("Dashboard Petugas");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTitle.setForeground(Color.WHITE);
+
+        JLabel lblDesc = new JLabel("Kelola data buku perpustakaan");
+        lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblDesc.setForeground(Color.WHITE);
+
+        header.add(lblTitle, BorderLayout.WEST);
+        header.add(lblDesc, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // Tabel Buku
-        model = new DefaultTableModel(new String[]{"ID", "Judul", "Pengarang", "Penerbit", "Stok"}, 0);
-        table = new JTable(model);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        /* ================= TABLE ================= */
+        model = new DefaultTableModel(
+                new String[]{"ID", "Judul", "Pengarang", "Penerbit", "Stok"}, 0) {
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
 
-        // Tombol Aksi
-        JPanel buttonPanel = new JPanel();
-        JButton btnTambah = new JButton("Tambah");
-        JButton btnEdit = new JButton("Edit");
-        JButton btnHapus = new JButton("Hapus");
+        table = new JTable(model);
+        table.setRowHeight(26);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        table.setSelectionBackground(new Color(52, 152, 219));
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        add(scrollPane, BorderLayout.CENTER);
+
+        /* ================= BUTTON PANEL ================= */
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttonPanel.setBackground(panelColor);
+
+        JButton btnTambah = new JButton("Tambah Buku");
+        JButton btnEdit   = new JButton("Edit Buku");
+        JButton btnHapus  = new JButton("Hapus Buku");
         JButton btnLogout = new JButton("Logout");
+
+        styleButton(btnTambah, new Color(46, 204, 113)); // hijau
+        styleButton(btnEdit,   new Color(52, 152, 219)); // biru
+        styleButton(btnHapus,  new Color(231, 76, 60));  // merah
+        styleButton(btnLogout, new Color(127, 140, 141));// abu
 
         btnTambah.addActionListener(e -> tambahBuku());
         btnEdit.addActionListener(e -> editBuku());
@@ -51,14 +87,41 @@ public class DashboardPetugas extends JFrame {
         buttonPanel.add(btnLogout);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // Load data dari file
         loadDataFromFile();
     }
 
+    /* ================= STYLE BUTTON ================= */
+    private void styleButton(JButton btn, Color color) {
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setOpaque(true);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setMargin(new Insets(6, 18, 6, 18));
+    }
+
+    /* ================= FORM DIALOG ================= */
     private void tambahBuku() {
-        JDialog dialog = new JDialog(this, "Tambah Buku", true);
-        dialog.setSize(400, 250);
-        dialog.setLayout(new GridLayout(6, 2, 10, 10));
+        showFormDialog("Tambah Buku", -1);
+    }
+
+    private void editBuku() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih buku terlebih dahulu");
+            return;
+        }
+        showFormDialog("Edit Buku", row);
+    }
+
+    private void showFormDialog(String title, int row) {
+        JDialog dialog = new JDialog(this, title, true);
+        dialog.setSize(440, 320);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JPanel form = new JPanel(new GridLayout(5, 2, 10, 10));
+        form.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 20));
 
         JTextField txtId = new JTextField();
         JTextField txtJudul = new JTextField();
@@ -66,92 +129,57 @@ public class DashboardPetugas extends JFrame {
         JTextField txtPenerbit = new JTextField();
         JTextField txtStok = new JTextField();
 
-        dialog.add(new JLabel("ID Buku:"));
-        dialog.add(txtId);
-        dialog.add(new JLabel("Judul:"));
-        dialog.add(txtJudul);
-        dialog.add(new JLabel("Pengarang:"));
-        dialog.add(txtPengarang);
-        dialog.add(new JLabel("Penerbit:"));
-        dialog.add(txtPenerbit);
-        dialog.add(new JLabel("Stok:"));
-        dialog.add(txtStok);
+        if (row != -1) {
+            txtId.setText(model.getValueAt(row, 0).toString());
+            txtId.setEditable(false);
+            txtJudul.setText(model.getValueAt(row, 1).toString());
+            txtPengarang.setText(model.getValueAt(row, 2).toString());
+            txtPenerbit.setText(model.getValueAt(row, 3).toString());
+            txtStok.setText(model.getValueAt(row, 4).toString());
+        }
 
+        form.add(new JLabel("ID Buku"));      form.add(txtId);
+        form.add(new JLabel("Judul"));        form.add(txtJudul);
+        form.add(new JLabel("Pengarang"));    form.add(txtPengarang);
+        form.add(new JLabel("Penerbit"));     form.add(txtPenerbit);
+        form.add(new JLabel("Stok"));         form.add(txtStok);
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnSimpan = new JButton("Simpan");
-        JButton btnBatal = new JButton("Batal");
+        JButton btnBatal  = new JButton("Batal");
+
+        styleButton(btnSimpan, new Color(52, 152, 219));
+        styleButton(btnBatal,  new Color(149, 165, 166));
 
         btnSimpan.addActionListener(e -> {
             try {
                 Buku buku = new Buku(
-                    txtId.getText(),
-                    txtJudul.getText(),
-                    txtPengarang.getText(),
-                    txtPenerbit.getText(),
-                    Integer.parseInt(txtStok.getText())
-                );
-                service.tambahBuku(buku);
-                model.addRow(buku.toRow());
+                        txtId.getText(), txtJudul.getText(), txtPengarang.getText(),
+                        txtPenerbit.getText(), Integer.parseInt(txtStok.getText()));
+
+                if (row == -1) {
+                    service.tambahBuku(buku);
+                    model.addRow(buku.toRow());
+                } else {
+                    model.setValueAt(txtJudul.getText(), row, 1);
+                    model.setValueAt(txtPengarang.getText(), row, 2);
+                    model.setValueAt(txtPenerbit.getText(), row, 3);
+                    model.setValueAt(txtStok.getText(), row, 4);
+                }
                 saveDataToFile();
                 dialog.dispose();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "Input tidak valid!");
+                JOptionPane.showMessageDialog(dialog, "Input tidak valid");
             }
         });
 
         btnBatal.addActionListener(e -> dialog.dispose());
 
-        dialog.add(btnSimpan);
-        dialog.add(btnBatal);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
+        footer.add(btnSimpan);
+        footer.add(btnBatal);
 
-    private void editBuku() {
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih buku dulu!");
-            return;
-        }
-
-        JDialog dialog = new JDialog(this, "Edit Buku", true);
-        dialog.setSize(400, 250);
-        dialog.setLayout(new GridLayout(6, 2, 10, 10));
-
-        JTextField txtId = new JTextField(model.getValueAt(row, 0).toString());
-        JTextField txtJudul = new JTextField(model.getValueAt(row, 1).toString());
-        JTextField txtPengarang = new JTextField(model.getValueAt(row, 2).toString());
-        JTextField txtPenerbit = new JTextField(model.getValueAt(row, 3).toString());
-        JTextField txtStok = new JTextField(model.getValueAt(row, 4).toString());
-
-        txtId.setEditable(false);
-
-        dialog.add(new JLabel("ID Buku:"));
-        dialog.add(txtId);
-        dialog.add(new JLabel("Judul:"));
-        dialog.add(txtJudul);
-        dialog.add(new JLabel("Pengarang:"));
-        dialog.add(txtPengarang);
-        dialog.add(new JLabel("Penerbit:"));
-        dialog.add(txtPenerbit);
-        dialog.add(new JLabel("Stok:"));
-        dialog.add(txtStok);
-
-        JButton btnSimpan = new JButton("Simpan");
-        JButton btnBatal = new JButton("Batal");
-
-        btnSimpan.addActionListener(e -> {
-            model.setValueAt(txtJudul.getText(), row, 1);
-            model.setValueAt(txtPengarang.getText(), row, 2);
-            model.setValueAt(txtPenerbit.getText(), row, 3);
-            model.setValueAt(txtStok.getText(), row, 4);
-            saveDataToFile();
-            dialog.dispose();
-        });
-
-        btnBatal.addActionListener(e -> dialog.dispose());
-
-        dialog.add(btnSimpan);
-        dialog.add(btnBatal);
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(footer, BorderLayout.SOUTH);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
@@ -159,26 +187,26 @@ public class DashboardPetugas extends JFrame {
     private void hapusBuku() {
         int row = table.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih buku dulu!");
+            JOptionPane.showMessageDialog(this, "Pilih buku terlebih dahulu");
             return;
         }
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Hapus buku ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Hapus buku ini?",
+                "Konfirmasi", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             service.hapusBuku(row);
             model.removeRow(row);
             saveDataToFile();
         }
     }
 
+    /* ================= FILE HANDLER ================= */
     private void saveDataToFile() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(DATA_FILE))) {
-            for (Buku buku : service.getDaftarBuku()) {
-                writer.println(buku.toRow()[0] + "|" + buku.toRow()[1] + "|" + 
-                               buku.toRow()[2] + "|" + buku.toRow()[3] + "|" + buku.toRow()[4]);
+        try (PrintWriter pw = new PrintWriter(new FileWriter(DATA_FILE))) {
+            for (Buku b : service.getDaftarBuku()) {
+                pw.println(b.getIdBuku() + "|" + b.getJudul() + "|" +
+                        b.getPengarang() + "|" + b.getPenerbit() + "|" + b.getStok());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan data");
         }
     }
 
@@ -186,18 +214,16 @@ public class DashboardPetugas extends JFrame {
         File file = new File(DATA_FILE);
         if (!file.exists()) return;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_FILE))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("\\|");
-                if (parts.length == 5) {
-                    Buku buku = new Buku(parts[0], parts[1], parts[2], parts[3], Integer.parseInt(parts[4]));
-                    service.tambahBuku(buku);
-                    model.addRow(buku.toRow());
-                }
+            while ((line = br.readLine()) != null) {
+                String[] p = line.split("\\|");
+                Buku b = new Buku(p[0], p[1], p[2], p[3], Integer.parseInt(p[4]));
+                service.tambahBuku(b);
+                model.addRow(b.toRow());
             }
-        } catch (IOException | NumberFormatException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Gagal membaca data");
         }
     }
 }
