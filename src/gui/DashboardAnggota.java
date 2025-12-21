@@ -3,7 +3,7 @@ package gui;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import model.*;
-import service.PerpustakaanService;
+import Service.PerpustakaanService;
 import java.awt.*;
 import java.io.*;
 
