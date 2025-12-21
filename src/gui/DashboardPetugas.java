@@ -1,6 +1,6 @@
 package gui;
 
-import service.PerpustakaanService;
+import Service.PerpustakaanService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import model.*;
