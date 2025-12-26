@@ -1,20 +1,31 @@
 package gui;
 
 import Service.PerpustakaanService;
+import Service.TransaksiService;
 import java.awt.*;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import model.*;
 
+
+
 public class DashboardPetugas extends JFrame {
+     
 
     private PerpustakaanService service = new PerpustakaanService();
     private DefaultTableModel model;
     private JTable table;
     private static final String DATA_FILE = "data_buku.txt";
+    private static final String DATA_PINJAM = "data_pinjam.txt";
+    private static TransaksiService transaksiService = new TransaksiService();
+    private DefaultTableModel modelPinjam;
+    private JTable tablePinjam;
+    
+    
 
     public DashboardPetugas() {
+       
         setTitle("Dashboard Petugas - Perpustakaan");
         setSize(920, 560);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -40,24 +51,38 @@ public class DashboardPetugas extends JFrame {
         header.add(lblTitle, BorderLayout.WEST);
         header.add(lblDesc, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
+        
 
-        /* ================= TABLE ================= */
-        model = new DefaultTableModel(
-                new String[]{"ID", "Judul", "Pengarang", "Penerbit", "Stok"}, 0) {
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
+    // ===== TAB DATA BUKU =====
+    model = new DefaultTableModel(
+        new String[]{"ID", "Judul", "Pengarang", "Penerbit", "Stok"}, 0) {
+        public boolean isCellEditable(int r, int c) {
+        return false;
+    }
         };
+    table = new JTable(model);
+    table.setRowHeight(26);
+    table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+    table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+    table.setSelectionBackground(new Color(52, 152, 219));
+    JScrollPane scrollPaneBuku = new JScrollPane(table);
 
-        table = new JTable(model);
-        table.setRowHeight(26);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.setSelectionBackground(new Color(52, 152, 219));
+    // ===== TAB BUKU DIPINJAM =====
+    modelPinjam = new DefaultTableModel(
+            new String[]{"Nama Anggota", "Judul Buku", "Jumlah"}, 0
+    );
+    tablePinjam = new JTable(modelPinjam);
+    tablePinjam.setRowHeight(26);
+    tablePinjam.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+    tablePinjam.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+    JScrollPane scrollPanePinjam = new JScrollPane(tablePinjam);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        add(scrollPane, BorderLayout.CENTER);
+    // ===== GABUNGKAN KE TAB =====
+    JTabbedPane tabs = new JTabbedPane();
+    tabs.add("Data Buku", scrollPaneBuku);
+    tabs.add("Buku Dipinjam", scrollPanePinjam);
+
+    add(tabs, BorderLayout.CENTER);
 
         /* ================= BUTTON PANEL ================= */
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
@@ -88,6 +113,7 @@ public class DashboardPetugas extends JFrame {
         add(buttonPanel, BorderLayout.SOUTH);
 
         loadDataFromFile();
+        loadDataPinjam();
     }
 
     /* ================= STYLE BUTTON ================= */
@@ -225,5 +251,16 @@ public class DashboardPetugas extends JFrame {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Gagal membaca data");
         }
+        
+    }
+    
+   private void loadDataPinjam() {
+    modelPinjam.setRowCount(0);
+    for (PeminjamanDetail p : transaksiService.getDaftarPinjam()) {
+        modelPinjam.addRow(p.toRow());
     }
 }
+
+}
+
+
