@@ -1,8 +1,10 @@
 package gui;
 
-import model.*;
-import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import javax.swing.*;
+import model.*;
 
 public class LoginForm extends JFrame {
 
@@ -105,35 +107,39 @@ public class LoginForm extends JFrame {
     }
 
     private void prosesLogin() {
-        String username = txtUser.getText();
-        String password = new String(txtPass.getPassword());
-        String role = cbRole.getSelectedItem().toString();
+    String username = txtUser.getText();
+    String password = new String(txtPass.getPassword());
+    String role = cbRole.getSelectedItem().toString();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Username dan password wajib diisi");
-            return;
-        }
-
-        try {
-            if (role.equals("Petugas")) {
-                Petugas p = new Petugas("P01", "Admin", "admin", "123");
-                if (p.login(username, password)) {
-                    new DashboardPetugas().setVisible(true);
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Login petugas gagal");
-                }
+    try {
+        if (role.equals("Petugas")) {
+            if (username.equals("admin") && password.equals("123")) {
+                new DashboardPetugas().setVisible(true);
+                dispose();
             } else {
-                Anggota a = new Anggota("A01", "User", "anggota", "123");
-                if (a.login(username, password)) {
+                JOptionPane.showMessageDialog(this, "Login petugas gagal");
+            }
+        } 
+        else { // ===== ANGGOTA =====
+            BufferedReader br = new BufferedReader(new FileReader("dataanggota.txt"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] p = line.split("\\|");
+
+                if (p[2].equals(username) && p[3].equals(password)) {
+                    Anggota a = new Anggota(p[0], p[1], p[2], p[3]);
                     new DashboardAnggota(a).setVisible(true);
                     dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Login anggota gagal");
+                    br.close();
+                    return;
                 }
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            br.close();
+            JOptionPane.showMessageDialog(this, "Akun anggota tidak ditemukan");
         }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "File anggota belum ada");
     }
+}
+
 }

@@ -1,15 +1,18 @@
 package gui;
 
+import Service.PerpustakaanService;
+import Service.TransaksiService;
+import java.awt.*;
+import java.io.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import model.*;
-import Service.PerpustakaanService;
-import java.awt.*;
-import java.io.*;
+
 
 public class DashboardAnggota extends JFrame {
 
     private PerpustakaanService service = new PerpustakaanService();
+    private static TransaksiService transaksiService = new TransaksiService();
     private DefaultTableModel modelBuku;
     private JTable tableBuku;
     private JTextField txtSearch;
